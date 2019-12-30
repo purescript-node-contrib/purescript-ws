@@ -1,0 +1,50 @@
+module Node.WebSocket.Internal 
+    ( WebSocket
+    , WebSocketOptions
+    , ReadyState
+    , createWebsocket
+    , followRedirects
+    , handshakeTimeout
+    , maxRedirects
+    , protocolVersion
+    ) 
+    where 
+
+import Data.Maybe (Maybe)
+import Data.Nullable (Nullable, toNullable)
+import Data.Options (Option, Options, opt)
+import Effect (Effect)
+
+foreign import data WebSocket :: Type 
+
+data WebSocketOptions 
+
+data ReadyState 
+    = Connecting 
+    | Open 
+    | Closing 
+    | Closed 
+
+
+createWebsocket :: String -> Maybe String -> Options WebSocketOptions -> Effect WebSocket 
+createWebsocket addr proto opts = createWebSocketImpl addr (toNullable proto) opts
+
+followRedirects :: Option WebSocketOptions Boolean 
+followRedirects = opt "followRedirects"
+
+handshakeTimeout :: Option WebSocketOptions Int 
+handshakeTimeout =  opt "handshakeTimeout"
+
+maxRedirects :: Option WebSocketOptions Int 
+maxRedirects = opt  "maxRedirects"
+
+protocolVersion :: Option WebSocketOptions Int 
+protocolVersion = opt "protocolVersion"
+
+origin :: Option WebSocketOptions String 
+origin = opt "origin"
+
+maxPayload :: Option WebSocketOptions Int 
+maxPayload = opt "maxPayload"
+
+foreign import createWebSocketImpl :: String -> Nullable String -> Options WebSocketOptions -> Effect WebSocket 
