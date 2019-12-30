@@ -1,0 +1,11 @@
+{
+  "name": "purescript-node-ws",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Woody88/purescript-node-ws.git",
+  "author": "Woodson Delhia <woodsondelhia88@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^7.2.1"
+  }
+}
