@@ -3,7 +3,7 @@
 const WebSocket = require('ws');
 
 exports.createWebSocketImpl = (addr) => (proto) => (opts) => () => {
-    return (proto === null ? new WebSocket(addr, opts) : new WebSocket(addr, proto, opts));
+    return new WebSocket(addr, proto, opts);
 }
 
 exports.onOpenImpl = ws => done => () => {

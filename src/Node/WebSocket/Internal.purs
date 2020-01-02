@@ -4,7 +4,6 @@ import Prelude
 
 import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.Maybe (Maybe)
-import Data.Nullable (Nullable, toNullable)
 import Data.Options (Option, Options, opt, options)
 import Effect (Effect)
 import Foreign (Foreign)
@@ -35,10 +34,10 @@ createWebsocket' :: forall recv send.
     MessageType recv 
     => MessageType send 
     => String 
-    -> Maybe String 
+    -> Array String 
     -> Options WebSocketOptions 
     -> Effect (WebSocket recv send)
-createWebsocket' addr proto opts = WebSocket <$> createWebSocketImpl addr (toNullable proto) (options opts) 
+createWebsocket' addr proto opts = WebSocket <$> createWebSocketImpl addr proto (options opts) 
 
 followRedirects :: Option WebSocketOptions Boolean 
 followRedirects = opt "followRedirects"
@@ -83,4 +82,4 @@ foreign import onCloseImpl :: WS-> Effect Unit -> Effect Unit
 
 foreign import sendImpl :: forall send. WS -> send -> Effect Unit 
 
-foreign import createWebSocketImpl :: String -> Nullable String -> Foreign -> Effect WS
+foreign import createWebSocketImpl :: String -> Array String -> Foreign -> Effect WS

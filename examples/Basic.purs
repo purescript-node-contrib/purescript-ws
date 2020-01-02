@@ -13,7 +13,7 @@ import Node.WebSocket (WebSocket, createWebsocket', origin, onOpen, onClose, onM
 
 main :: Effect Unit
 main = do
-  (ws :: WS.WebSocket Buffer String) <- WS.createWebsocket' "wss://echo.websocket.org/" Nothing $ WS.origin := "https://websocket.org"
+  (ws :: WS.WebSocket Buffer String) <- WS.createWebsocket' "wss://echo.websocket.org/" [] $ WS.origin := "https://websocket.org"
   WS.onOpen ws do 
     Console.log "Connected"
     WS.send ws "Hello, world"
