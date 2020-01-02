@@ -46,31 +46,24 @@ clientTracking = opt "clientTracking"
 maxPayload :: Option WSServerOptions Int
 maxPayload = opt "maxPayload"
 
-clients :: WSServer -> Effect (Array WebSocket)
+clients :: forall recv send. WSServer -> Effect (Array (WebSocket recv send))
 clients = getClientsImpl
 
-handleUpgrade :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit 
+handleUpgrade :: forall recv send. WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket recv send -> Effect Unit) -> Effect Unit 
 handleUpgrade = handleUpgradeImpl
 
 shouldHandle :: WSServer -> HTTP.Request -> Effect Boolean
 shouldHandle = shouldHandleImpl
 
--- shouldHandler :: WSSServer -> HTTP.Request -> Effect Unit 
-
 close :: WSServer -> Effect Unit -> Effect Unit
 close wsserver done = closeImpl wsserver done
-
--- onClose :: 
--- onConnection :: 
--- onHeaders :: 
--- onListening :: 
 
 foreign import createServerImpl :: Effect Unit -> Foreign -> Effect WSServer
 
 foreign import closeImpl  :: WSServer -> Effect Unit -> Effect Unit
 
-foreign import getClientsImpl :: WSServer -> Effect (Array WebSocket)
+foreign import getClientsImpl :: forall recv send. WSServer -> Effect (Array (WebSocket recv send))
 
-foreign import handleUpgradeImpl :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit
+foreign import handleUpgradeImpl :: forall recv send. WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket recv send -> Effect Unit) -> Effect Unit
 
 foreign import shouldHandleImpl :: WSServer -> HTTP.Request -> Effect Boolean
