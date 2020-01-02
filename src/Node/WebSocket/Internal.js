@@ -25,3 +25,23 @@ exports.sendImpl = ws => msg => () => {
 exports.closeImpl = (ws) => () => { 
     ws.close();
 }
+
+exports.onPingImpl = ws => done => () => {
+    ws.onping = done;
+}
+exports.onPongImpl = ws => done => () => {
+    ws.onpong = done;
+}
+exports.onErrorImpl = ws => handler => () => {
+    ws.onerror = (e) => handler(e)();
+}
+exports.terminateImpl = ws => () => {
+    ws.terminate();
+}
+
+exports.protocolImpl = ws => {
+    ws.protocol;
+}
+exports.urlImpl = ws => {
+    ws.url;
+}

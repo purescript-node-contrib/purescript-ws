@@ -3,8 +3,11 @@ module Node.WebSocket.Internal where
 import Prelude
 
 import Data.ArrayBuffer.Types (ArrayBuffer)
+import Data.Maybe (Maybe)
+import Data.Nullable (Nullable, toMaybe)
 import Data.Options (Option, Options, opt, options)
 import Effect (Effect)
+import Effect.Exception (Error)
 import Foreign (Foreign)
 import Node.Buffer (Buffer)
 
@@ -71,6 +74,24 @@ close (WebSocket ws) = closeImpl ws
 send :: forall recv send. MessageType send => WebSocket recv send -> send -> Effect Unit
 send (WebSocket ws) = sendImpl ws 
 
+onError :: forall recv send. WebSocket recv send -> (Error -> Effect Unit)  -> Effect Unit 
+onError (WebSocket ws) = onErrorImpl ws
+
+onPing :: forall recv send. WebSocket recv send -> Effect Unit -> Effect Unit 
+onPing (WebSocket ws) = onPingImpl ws 
+
+onPong :: forall recv send. WebSocket recv send -> Effect Unit -> Effect Unit 
+onPong (WebSocket ws) = onPongImpl ws 
+
+terminate :: forall recv send. WebSocket recv send -> Effect Unit 
+terminate (WebSocket ws) = terminateImpl ws
+
+url :: forall recv send. WebSocket recv send -> Maybe String 
+url (WebSocket ws) = toMaybe $ urlImpl ws
+
+protocol :: forall recv send. WebSocket recv send -> Maybe String 
+protocol (WebSocket ws) = toMaybe $ protocolImpl ws
+
 foreign import closeImpl :: WS -> Effect Unit 
 
 foreign import onOpenImpl ::  WS -> Effect Unit -> Effect Unit
@@ -78,6 +99,18 @@ foreign import onOpenImpl ::  WS -> Effect Unit -> Effect Unit
 foreign import onMessageImpl :: forall recv. WS -> (recv -> Effect Unit) -> Effect Unit 
 
 foreign import onCloseImpl :: WS-> Effect Unit -> Effect Unit
+
+foreign import onErrorImpl :: WS -> (Error -> Effect Unit)  -> Effect Unit 
+
+foreign import onPingImpl :: WS -> Effect Unit -> Effect Unit 
+
+foreign import onPongImpl :: WS -> Effect Unit -> Effect Unit 
+
+foreign import terminateImpl :: WS -> Effect Unit 
+
+foreign import urlImpl :: WS -> Nullable String 
+
+foreign import protocolImpl :: WS -> Nullable String 
 
 foreign import sendImpl :: forall send. WS -> send -> Effect Unit 
 
