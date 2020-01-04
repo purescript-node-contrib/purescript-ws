@@ -2,47 +2,48 @@
 
 const WebSocket = require('ws');
 
-exports.createServerImpl = opts => () => {
-    return new WebSocket.Server(opts);
+exports.createServerImpl = opts => (onError, onSuccess) => {
+    let server = new WebSocket.Server(opts);
+
+    server.on('error', onError)
+    server.on('listening', () => onSuccess(server))
+
+    return (cancelError, onCancelerError, onCancelerSuccess) => {
+        onCancelerSuccess()
+    }
 }
 
-exports.onConnectionImpl = server => handler => () => {
+exports.onConnectionImpl = server => tuple => (onError, onSuccess) => {
     server.on('connection', function(ws, req){
-        handler(ws)(req)();
-    });
+        onSuccess(tuple(ws)(req))
+    })
+    
+    return (cancelError, onCancelerError, onCancelerSuccess) => {
+        onCancelerSuccess()
+    }
 }
 
-exports.onError = server => handler => () => {
-    server.on('error', function(e){
-        handler(e)();
-    });
-}
+exports.closeImpl = server => (onError, onSuccess) => {
+    server.close(onSuccess);
 
-exports.onHeaders = server => handler => () => {
-    server.on('headers', function(headers, req){
-        handler(headers)(req)();
-    });
-}
-
-exports.listening = server => done => () => {
-    server.on('listening', function(){
-        done();
-    });
-}
-
-exports.close = server => done => () => {
-    server.close(done);
+    return (cancelError, onCancelerError, onCancelerSuccess) => {
+        onCancelerSuccess()
+    }
 }
 
 
-exports.getClientsImpl = server => () => {
-    server.clients;
+exports.handleUpgradeImpl = server => request => socket => buffer => done => (onError, onSuccess) => {
+    server.handleUpgrade(request, socket, buffer, onSuccess);
+
+    return (cancelError, onCancelerError, onCancelerSuccess) => {
+        onCancelerSuccess()
+    }
 }
 
-exports.handleUpgradeImpl = server => request => socket => buffer => done => () => {
-    server.handleUpgrade(request, socket, buffer, done);
-}
+exports.shouldHandleImpl = server => request => (onError, onSuccess) => {
+    onSuccess(server.shouldHandle(request))
 
-exports.shouldHandle = server => request => () => {
-    server.shouldHandle(request);
+    return (cancelError, onCancelerError, onCancelerSuccess) => {
+        onCancelerSuccess()
+    }
 }

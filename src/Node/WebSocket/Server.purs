@@ -3,13 +3,14 @@ module Node.WebSocket.Server where
 import Prelude
 
 import Data.Options (Option, Options, opt, options, (:=))
-import Effect (Effect)
-import Effect.Exception (Error)
+import Data.Tuple (Tuple(..))
+import Effect.Aff (Aff)
+import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
 import Foreign (Foreign)
 import Node.Buffer (Buffer)
 import Node.HTTP as HTTP
 import Node.Net.Socket as Net
-import Node.WebSocket.Internal (WS, WebSocket(..))
+import Node.WebSocket.Internal (WebSocket)
 
 foreign import data WSServer :: Type  
 
@@ -19,12 +20,10 @@ foreign import data HttpServer :: Type
 
 data WSServerConfig  =  Port Int | Server HttpServer | NoServer 
 
-createServer :: WSServerConfig -> Options WSServerOptions -> Effect WSServer
-createServer NoServer opts = createServerImpl $ options opts 
-createServer (Server s) opts = 
-    createServerImpl $ options (opts <> server := s)
-createServer (Port p) opts = 
-    createServerImpl $ options (opts <> port := p)
+createServer :: WSServerConfig -> Options WSServerOptions -> Aff WSServer
+createServer NoServer opts = fromEffectFnAff $ createServerImpl $ options opts
+createServer (Server s) opts = fromEffectFnAff $ createServerImpl $ options (opts <> server := s)
+createServer (Port p) opts = fromEffectFnAff $ createServerImpl $ options (opts <> port := p)
 
 port :: Option WSServerOptions Int 
 port = opt "port" 
@@ -47,31 +46,28 @@ clientTracking = opt "clientTracking"
 maxPayload :: Option WSServerOptions Int
 maxPayload = opt "maxPayload"
 
-clients :: forall recv send. WSServer -> Effect (Array (WebSocket recv send))
-clients svr = do 
-    clts <- getClientsImpl svr 
-    pure $ WebSocket <$> clts
+handleUpgrade :: forall recv send. WSServer -> HTTP.Request -> Net.Socket -> Buffer -> Aff (WebSocket recv send) 
+handleUpgrade svr req sock buff = fromEffectFnAff $ handleUpgradeImpl svr req sock  buff
 
-handleUpgrade :: forall recv send. WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket recv send -> Effect Unit) -> Effect Unit 
-handleUpgrade svr req sock buff cb = handleUpgradeImpl svr req sock buff $ \ws -> cb (WebSocket ws)
+onConnection :: forall recv send. WSServer -> Aff (Tuple (WebSocket recv send) HTTP.Request) 
+onConnection svr = fromEffectFnAff $ onConnectionImpl svr Tuple
 
-onConnection :: forall recv send. WSServer -> (WebSocket recv send -> HTTP.Request -> Effect Unit) -> Effect Unit 
-onConnection svr cb = onConnectionImpl svr $ \ws req -> cb (WebSocket ws) req
+shouldHandle :: WSServer -> HTTP.Request -> Aff Boolean 
+shouldHandle svr req = fromEffectFnAff $ shouldHandleImpl svr req 
 
-foreign import createServerImpl :: Foreign -> Effect WSServer
+close :: WSServer -> Aff Unit 
+close svr = fromEffectFnAff $ closeImpl svr
 
-foreign import close  :: WSServer -> Effect Unit -> Effect Unit
+foreign import createServerImpl :: Foreign -> EffectFnAff WSServer
 
-foreign import getClientsImpl :: WSServer -> Effect (Array WS)
+foreign import closeImpl  :: WSServer -> EffectFnAff Unit
 
-foreign import handleUpgradeImpl :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WS -> Effect Unit) -> Effect Unit
+foreign import handleUpgradeImpl :: forall recv send. WSServer -> HTTP.Request -> Net.Socket -> Buffer -> EffectFnAff (WebSocket recv send)
 
-foreign import shouldHandle :: WSServer -> HTTP.Request -> Effect Boolean
+foreign import shouldHandleImpl :: WSServer -> HTTP.Request -> EffectFnAff Boolean
 
-foreign import onConnectionImpl :: WSServer -> (WS -> HTTP.Request ->  Effect Unit) -> Effect Unit 
+foreign import onConnectionImpl :: forall recv send a b. WSServer -> (a -> b -> Tuple a b) -> EffectFnAff (Tuple (WebSocket recv send) HTTP.Request) 
 
-foreign import onError :: WSServer -> (Error -> Effect Unit)  -> Effect Unit 
-
-foreign import onHeaders :: WSServer -> (Array String -> HTTP.Request -> Effect Unit)  -> Effect Unit 
-
-foreign import listening :: WSServer -> Effect Unit -> Effect Unit
+-- TO DO: Do we really need these two functions?
+-- foreign import getClientsImpl :: WSServer -> Effect (Array WS)
+-- foreign import onHeaders :: WSServer -> (Array String -> HTTP.Request -> Effect Unit)  -> Effect Unit 

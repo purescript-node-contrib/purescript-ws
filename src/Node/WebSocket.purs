@@ -2,7 +2,6 @@ module Node.WebSocket
     ( module WS
     ) where 
 
-import Node.WebSocket.Internal ( WebSocket, WebSocketOptions, ReadyState, class MessageType, createWebsocket, createWebsocket'
-                               , followRedirects, handshakeTimeout, maxRedirects, protocolVersion, origin, maxPayload
-                               , onOpen, onClose, onMessage, onError, onPing, onPong, terminate, url, protocol, send, close) as WS 
-
+import Node.WebSocket.Internal ( WebSocket, WebSocketOptions, ReadyState(..), class MessageType, createWebsocket, createWebsocket'
+                               , followRedirects, readyState, handshakeTimeout, maxRedirects, protocolVersion, origin, maxPayload
+                               , onMessage, onPing, onPong, ping, pong, terminate, url, protocol, send, close) as WS 

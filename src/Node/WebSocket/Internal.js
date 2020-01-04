@@ -2,39 +2,61 @@
 
 const WebSocket = require('ws');
 
-exports.createWebsocketImpl = (addr) => (proto) => (opts) => () => {
-    return new WebSocket(addr, proto, opts);
+exports.createWebsocketImpl_ = (addr) => (proto) => (opts) => (onError, onSuccess) => {
+    let websocket = new WebSocket(addr, proto, opts)
+    websocket.onerror = onError; 
+    onSuccess(websocket)
+
+    return (cancelError, onCancelerError, onCancelerSuccess) => {
+        websocket.terminate()
+        onCancelerSuccess()
+    }
 }
 
-exports.onOpenImpl = ws => done => () => {
-    ws.onopen = done;
+exports.readyStateImpl = (websocket) => {
+    let readyState = (state) => ({
+        0: "Connecting",
+        1: "Open",
+        2: "Closing",
+        3: "Closed"
+    })[state]
+
+    return { tag: readyState(websocket.readyState) }
 }
 
-exports.onCloseImpl = ws => done => () => {
-    ws.onclose = done;
+exports.sendImpl_ = ws => msg => () => {
+    ws.send(msg)
 }
 
-exports.onMessageImpl = ws => handler => () => { 
-    ws.onmessage = (m) => handler(m.data)();
+exports.pingImpl = ws => buff => () => {
+    ws.ping(buff);
 }
 
-exports.sendImpl = ws => msg => () => {
-    ws.send(msg);
+exports.pongImpl = ws => buff => () => {
+    ws.pong(buff);
+}
+
+
+exports.onPingImpl = ws => done => () => {
+    ws.on('ping', done)
+}
+
+exports.onPongImpl = ws => done => () => {
+    ws.on('pong', done)
 }
 
 exports.closeImpl = (ws) => () => { 
     ws.close();
 }
 
-exports.onPingImpl = ws => done => () => {
-    ws.onping = done;
+exports.onMessageImpl = ws => (onError, onSuccess) => { 
+    ws.onmessage = (e) => onSuccess(e.data);
+
+    return (cancelError, onCancelerError, onCancelerSuccess) => {
+        onCancelerSuccess()
+    }
 }
-exports.onPongImpl = ws => done => () => {
-    ws.onpong = done;
-}
-exports.onErrorImpl = ws => handler => () => {
-    ws.onerror = (e) => handler(e)();
-}
+
 exports.terminateImpl = ws => () => {
     ws.terminate();
 }
