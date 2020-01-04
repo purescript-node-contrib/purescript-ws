@@ -69,5 +69,5 @@ foreign import shouldHandleImpl :: WSServer -> HTTP.Request -> EffectFnAff Boole
 foreign import onConnectionImpl :: forall recv send a b. WSServer -> (a -> b -> Tuple a b) -> EffectFnAff (Tuple (WebSocket recv send) HTTP.Request) 
 
 -- TO DO: Do we really need these two functions?
--- foreign import getClientsImpl :: WSServer -> Effect (Array WS)
+-- foreign import getClientsImpl :: WSServer -> Effect (Set WS)
 -- foreign import onHeaders :: WSServer -> (Array String -> HTTP.Request -> Effect Unit)  -> Effect Unit 

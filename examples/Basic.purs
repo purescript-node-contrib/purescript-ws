@@ -12,7 +12,6 @@ import Node.WebSocket (createWebsocket, readyState, origin, onMessage, send) as 
 main :: Effect Unit
 main = launchAff_ websocket
 
-
 websocket :: Aff Unit 
 websocket = do 
     ws <- WS.createWebsocket "wss://echo.websocket.org/" [] $ WS.origin := "https://websocket.org"

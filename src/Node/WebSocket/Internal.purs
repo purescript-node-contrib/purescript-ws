@@ -22,8 +22,6 @@ import Node.Buffer.Internal as Buffer
 
 foreign import data WebSocket :: Type -> Type -> Type
 
--- newtype WebSocket recv send  = WebSocket WS 
-
 data WebSocketOptions 
 
 data ReadyState 
