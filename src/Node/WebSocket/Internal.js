@@ -2,18 +2,11 @@
 
 const WebSocket = require('ws');
 
-exports.createWebsocketImpl_ = (addr) => (proto) => (opts) => (onError, onSuccess) => {
-    let websocket = new WebSocket(addr, proto, opts)
-    websocket.onerror = onError; 
-    onSuccess(websocket)
-
-    return (cancelError, onCancelerError, onCancelerSuccess) => {
-        websocket.terminate()
-        onCancelerSuccess()
-    }
+exports.createWebsocketImpl = addr => proto => opts => () => {
+    return new WebSocket(addr, proto, opts)
 }
 
-exports.readyStateImpl = (websocket) => {
+exports.readyStateImpl = websocket => () => {
     let readyState = (state) => ({
         0: "Connecting",
         1: "Open",
@@ -24,37 +17,46 @@ exports.readyStateImpl = (websocket) => {
     return { tag: readyState(websocket.readyState) }
 }
 
-exports.sendImpl_ = ws => msg => () => {
-    ws.send(msg)
+exports.sendImpl = ws => data => options => action => () => {
+    ws.send(data, options, action)
 }
 
-exports.pingImpl = ws => buff => () => {
-    ws.ping(buff);
+exports.pingImpl = ws => data => mask => action => () => {
+    ws.ping(data, mask, action)
 }
 
-exports.pongImpl = ws => buff => () => {
-    ws.pong(buff);
+exports.pongImpl = ws => data => mask => action => () => {
+    ws.pong(data, mask, action)
 }
 
-
-exports.onPingImpl = ws => done => () => {
-    ws.on('ping', done)
+exports.closeImpl = (ws) => code => reason => () => { 
+    ws.close(code, reason)
 }
 
-exports.onPongImpl = ws => done => () => {
-    ws.on('pong', done)
+exports.closeImpl_ = (ws) => () => { 
+    ws.close()
 }
 
-exports.closeImpl = (ws) => () => { 
-    ws.close();
+exports.onopenImpl = ws => cb => () => {
+    ws.onopen = cb
 }
 
-exports.onMessageImpl = ws => (onError, onSuccess) => { 
-    ws.onmessage = (e) => onSuccess(e.data);
+exports.oncloseImpl = ws => cb => () => {
+    ws.onclose = cb
+}
 
-    return (cancelError, onCancelerError, onCancelerSuccess) => {
-        onCancelerSuccess()
+exports.onmessageImpl = ws => cb => () => { 
+    ws.onmessage = (e) => {
+        cb(e.data)()
     }
+}
+
+exports.onpingImpl = ws => cb => () => {
+    ws.on('ping', (data) => cb(data)())
+}
+
+exports.onpongImpl = ws => cb => () => {
+    ws.on('pong', (data) => cb(data)())
 }
 
 exports.terminateImpl = ws => () => {
@@ -64,6 +66,9 @@ exports.terminateImpl = ws => () => {
 exports.protocolImpl = ws => {
     ws.protocol;
 }
+
 exports.urlImpl = ws => {
     ws.url;
 }
+
+exports.isServer = ws => ws._isServer 

@@ -4,13 +4,15 @@ You can edit this file as you like.
 -}
 { name = "my-project"
 , dependencies =
-    [ "aff"
-    , "effect"
-    , "foreign-generic"
-    , "node-buffer"
-    , "node-http"
-    , "node-net"
-    ]
+  [ "aff"
+  , "bytestrings"
+  , "effect"
+  , "foreign-generic"
+  , "node-buffer"
+  , "node-http"
+  , "node-net"
+  , "psci-support"
+  ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs" ]
 }
