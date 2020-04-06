@@ -143,6 +143,8 @@ protocol ws = toMaybe $ protocolImpl ws
 
 foreign import isServer :: WebSocket -> Boolean 
 
+foreign import extensions :: WebSocket -> Foreign
+
 foreign import urlImpl :: WebSocket -> Nullable String 
 
 foreign import protocolImpl :: WebSocket -> Nullable String 

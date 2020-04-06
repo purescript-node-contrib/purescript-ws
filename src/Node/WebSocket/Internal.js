@@ -33,9 +33,7 @@ exports.closeImpl = (ws) => code => reason => () => {
     ws.close(code, reason)
 }
 
-exports.closeImpl_ = (ws) => () => { 
-    ws.close()
-}
+exports.closeImpl_ = (ws) => () => ws.close()
 
 exports.onopenImpl = ws => cb => () => {
     ws.onopen = cb
@@ -59,16 +57,12 @@ exports.onpongImpl = ws => cb => () => {
     ws.on('pong', (data) => cb(data)())
 }
 
-exports.terminateImpl = ws => () => {
-    ws.terminate();
-}
+exports.terminateImpl = ws => () => ws.terminate()
 
-exports.protocolImpl = ws => {
-    ws.protocol;
-}
+exports.protocolImpl = ws => ws.protocol
 
-exports.urlImpl = ws => {
-    ws.url;
-}
+exports.urlImpl = ws => ws.url
+
+exports.extensions = ws => ws.extensions
 
 exports.isServer = ws => ws._isServer 
