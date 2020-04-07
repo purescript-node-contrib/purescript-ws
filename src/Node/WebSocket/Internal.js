@@ -57,6 +57,12 @@ exports.onpongImpl = ws => cb => () => {
     ws.on('pong', (data) => cb(data)())
 }
 
+exports.onerrorImpl = ws => cb => () => {
+    ws.on('error', (err) => { 
+        cb(err)()
+    })
+}
+
 exports.terminateImpl = ws => () => ws.terminate()
 
 exports.protocolImpl = ws => ws.protocol

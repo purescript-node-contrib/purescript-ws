@@ -3,7 +3,6 @@ module Node.WebSocket.Internal where
 import Prelude
 
 import Control.Monad.Except (runExcept, throwError, withExcept)
-import Data.ArrayBuffer.Types (ArrayBuffer)
 import Data.ByteString (ByteString)
 import Data.Either (either)
 import Data.Foldable (foldMap)
@@ -11,16 +10,12 @@ import Data.Generic.Rep (class Generic)
 import Data.Generic.Rep.Show (genericShow)
 import Data.Maybe (Maybe)
 import Data.Nullable (Nullable, toMaybe)
-import Data.Options (Option, Options(..), opt, options)
+import Data.Options (Option, Options, opt, options)
 import Effect (Effect)
-import Effect.Aff (Aff, error, makeAff, nonCanceler)
-import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
+import Effect.Exception (Error, error)
 import Foreign (Foreign, renderForeignError)
-import Foreign.Generic (class Decode, SumEncoding(..), defaultOptions, genericDecode)
+import Foreign.Generic (class Decode, defaultOptions, genericDecode)
 import Foreign.Generic.EnumEncoding (defaultGenericEnumOptions, genericDecodeEnum)
-import Node.Buffer (Buffer)
-import Node.Buffer.Internal as Buffer
-import Unsafe.Coerce (unsafeCoerce)
 
 foreign import data WebSocket :: Type
 
@@ -99,6 +94,9 @@ send ws b = send' ws b defaultSendOpts (pure unit)
 send' :: WebSocket -> ByteString -> SendOptions -> Effect Unit -> Effect Unit
 send' = sendImpl 
 
+onerror :: WebSocket -> (Error -> Effect Unit) -> Effect Unit
+onerror = onerrorImpl
+
 onmessage :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit
 onmessage = onmessageImpl
 
@@ -142,35 +140,20 @@ protocol :: WebSocket-> Maybe String
 protocol ws = toMaybe $ protocolImpl ws
 
 foreign import isServer :: WebSocket -> Boolean 
-
 foreign import extensions :: WebSocket -> Foreign
-
 foreign import urlImpl :: WebSocket -> Nullable String 
-
 foreign import protocolImpl :: WebSocket -> Nullable String 
-
 foreign import createWebsocketImpl :: String -> Array String -> Foreign -> Effect WebSocket
-
 foreign import readyStateImpl :: WebSocket -> Effect Foreign 
-
 foreign import sendImpl :: WebSocket -> ByteString -> SendOptions -> Effect Unit -> Effect Unit 
-
 foreign import onpingImpl :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit  
-
 foreign import onpongImpl :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit  
-
 foreign import pingImpl :: WebSocket -> ByteString -> Boolean -> Effect Unit -> Effect Unit  
-
 foreign import pongImpl :: WebSocket -> ByteString -> Boolean -> Effect Unit -> Effect Unit  
-
 foreign import onopenImpl :: WebSocket -> Effect Unit -> Effect Unit
-
 foreign import oncloseImpl :: WebSocket -> Effect Unit -> Effect Unit
-
+foreign import onerrorImpl :: WebSocket -> (Error -> Effect Unit) -> Effect Unit
 foreign import onmessageImpl :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit
-
 foreign import closeImpl :: WebSocket -> Int -> String -> Effect Unit
-
 foreign import closeImpl_ :: WebSocket -> Effect Unit
-
 foreign import terminateImpl :: WebSocket -> Effect Unit

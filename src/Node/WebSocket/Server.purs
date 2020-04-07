@@ -1,11 +1,38 @@
-module Node.WebSocket.Server where 
+module Node.WebSocket.Server 
+    ( WSServer
+    , WSServerConfig (..)
+    , WSServerOptions
+    , createServer
+
+    -- WSServerOptions
+    , server 
+    , noServer
+    , port 
+    , host 
+    , backlog
+    , path 
+    , maxPayload
+
+    -- on events
+    , onconnection
+    , onerror
+    , onclose
+    , onlistening
+    , onheaders
+
+    , handleUpgrade
+    , shouldHandle
+    , close
+    , close'
+    ) 
+    where 
 
 import Prelude
 
 import Data.ByteString (ByteString)
 import Data.Options (Option, Options, opt, options, (:=))
 import Effect (Effect)
-import Effect.Aff (Error)
+import Effect.Exception (Error)
 import Foreign (Foreign)
 import Node.Buffer (Buffer)
 import Node.HTTP as HTTP
@@ -44,9 +71,6 @@ path = opt "path"
 maxPayload :: Option WSServerOptions Int
 maxPayload = opt "maxPayload"
 
-handleUpgrade :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit 
-handleUpgrade = handleUpgradeImpl 
-
 onconnection :: WSServer -> (WebSocket -> HTTP.Request -> Effect Unit) -> Effect Unit
 onconnection = onconnectionImpl 
 
@@ -61,6 +85,9 @@ onlistening = onlisteningImpl
 
 onheaders :: WSServer -> (Array ByteString -> HTTP.Request -> Effect Unit) -> Effect Unit 
 onheaders = onheadersImpl 
+
+handleUpgrade :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit 
+handleUpgrade = handleUpgradeImpl 
 
 shouldHandle :: WSServer -> HTTP.Request -> Boolean 
 shouldHandle = shouldHandleImpl 
