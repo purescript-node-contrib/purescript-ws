@@ -2,10 +2,10 @@ module Node.WebSocket.Server where
 
 import Prelude
 
+import Data.ByteString (ByteString)
 import Data.Options (Option, Options, opt, options, (:=))
-import Data.Tuple (Tuple(..))
-import Effect.Aff (Aff)
-import Effect.Aff.Compat (EffectFnAff, fromEffectFnAff)
+import Effect (Effect)
+import Effect.Aff (Error)
 import Foreign (Foreign)
 import Node.Buffer (Buffer)
 import Node.HTTP as HTTP
@@ -16,20 +16,21 @@ foreign import data WSServer :: Type
 
 data WSServerOptions 
 
-foreign import data HttpServer :: Type 
+data WSServerConfig  =  Port Int | Server HTTP.Server | NoServer 
 
-data WSServerConfig  =  Port Int | Server HttpServer | NoServer 
-
-createServer :: WSServerConfig -> Options WSServerOptions -> Aff WSServer
-createServer NoServer opts = fromEffectFnAff $ createServerImpl $ options opts
-createServer (Server s) opts = fromEffectFnAff $ createServerImpl $ options (opts <> server := s)
-createServer (Port p) opts = fromEffectFnAff $ createServerImpl $ options (opts <> port := p)
+createServer :: WSServerConfig -> Options WSServerOptions -> Effect Unit -> Effect WSServer
+createServer NoServer opts action   = createServerImpl (options (opts <> noServer := true)) action
+createServer (Server s) opts action = createServerImpl (options (opts <> server := s)) action 
+createServer (Port p) opts action   = createServerImpl (options (opts <> port := p)) action
 
 port :: Option WSServerOptions Int 
 port = opt "port" 
 
-server :: Option WSServerOptions HttpServer
+server :: Option WSServerOptions HTTP.Server
 server = opt "server"
+
+noServer :: Option WSServerOptions Boolean
+noServer = opt "noServer"
 
 host :: Option WSServerOptions String 
 host = opt "host"
@@ -40,34 +41,42 @@ backlog = opt "backlog"
 path :: Option WSServerOptions Int 
 path = opt "path"
 
-clientTracking :: Option WSServerOptions Boolean
-clientTracking = opt "clientTracking"
-
 maxPayload :: Option WSServerOptions Int
 maxPayload = opt "maxPayload"
 
-handleUpgrade :: forall recv send. WSServer -> HTTP.Request -> Net.Socket -> Buffer -> Aff (WebSocket recv send) 
-handleUpgrade svr req sock buff = fromEffectFnAff $ handleUpgradeImpl svr req sock  buff
+handleUpgrade :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit 
+handleUpgrade = handleUpgradeImpl 
 
-onConnection :: forall recv send. WSServer -> Aff (Tuple (WebSocket recv send) HTTP.Request) 
-onConnection svr = fromEffectFnAff $ onConnectionImpl svr Tuple
+onconnection :: WSServer -> (WebSocket -> HTTP.Request -> Effect Unit) -> Effect Unit
+onconnection = onconnectionImpl 
 
-shouldHandle :: WSServer -> HTTP.Request -> Aff Boolean 
-shouldHandle svr req = fromEffectFnAff $ shouldHandleImpl svr req 
+onerror :: WSServer -> (Error -> Effect Unit) -> Effect Unit
+onerror = onerrorImpl
 
-close :: WSServer -> Aff Unit 
-close svr = fromEffectFnAff $ closeImpl svr
+onclose :: WSServer -> Effect Unit -> Effect Unit
+onclose = oncloseImpl
 
-foreign import createServerImpl :: Foreign -> EffectFnAff WSServer
+onlistening :: WSServer -> Effect Unit -> Effect Unit 
+onlistening = onlisteningImpl
 
-foreign import closeImpl  :: WSServer -> EffectFnAff Unit
+onheaders :: WSServer -> (Array ByteString -> HTTP.Request -> Effect Unit) -> Effect Unit 
+onheaders = onheadersImpl 
 
-foreign import handleUpgradeImpl :: forall recv send. WSServer -> HTTP.Request -> Net.Socket -> Buffer -> EffectFnAff (WebSocket recv send)
+shouldHandle :: WSServer -> HTTP.Request -> Boolean 
+shouldHandle = shouldHandleImpl 
 
-foreign import shouldHandleImpl :: WSServer -> HTTP.Request -> EffectFnAff Boolean
+close :: WSServer -> Effect Unit 
+close svr = close' svr (pure unit) 
 
-foreign import onConnectionImpl :: forall recv send a b. WSServer -> (a -> b -> Tuple a b) -> EffectFnAff (Tuple (WebSocket recv send) HTTP.Request) 
+close' :: WSServer -> Effect Unit -> Effect Unit 
+close' = closeImpl 
 
--- TO DO: Do we really need these two functions?
--- foreign import getClientsImpl :: WSServer -> Effect (Set WS)
--- foreign import onHeaders :: WSServer -> (Array String -> HTTP.Request -> Effect Unit)  -> Effect Unit 
+foreign import createServerImpl  :: Foreign -> Effect Unit -> Effect WSServer
+foreign import closeImpl         :: WSServer -> Effect Unit -> Effect Unit
+foreign import handleUpgradeImpl :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit 
+foreign import shouldHandleImpl  :: WSServer -> HTTP.Request -> Boolean
+foreign import onconnectionImpl  :: WSServer -> (WebSocket -> HTTP.Request -> Effect Unit) -> Effect Unit 
+foreign import onerrorImpl       :: WSServer -> (Error -> Effect Unit) -> Effect Unit 
+foreign import oncloseImpl       :: WSServer -> Effect Unit -> Effect Unit 
+foreign import onlisteningImpl   :: WSServer -> Effect Unit -> Effect Unit 
+foreign import onheadersImpl     :: WSServer -> (Array ByteString -> HTTP.Request -> Effect Unit) -> Effect Unit 

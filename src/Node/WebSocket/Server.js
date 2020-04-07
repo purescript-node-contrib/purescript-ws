@@ -2,48 +2,46 @@
 
 const WebSocket = require('ws');
 
-exports.createServerImpl = opts => (onError, onSuccess) => {
-    let server = new WebSocket.Server(opts);
-
-    server.on('error', onError)
-    server.on('listening', () => onSuccess(server))
-
-    return (cancelError, onCancelerError, onCancelerSuccess) => {
-        onCancelerSuccess()
-    }
+exports.createServerImpl = opts => (cb) => () => {
+    return new WebSocket.Server(opts, cb)
 }
 
-exports.onConnectionImpl = server => tuple => (onError, onSuccess) => {
-    server.on('connection', function(ws, req){
-        onSuccess(tuple(ws)(req))
+exports.onerrorImpl = server => cb => () => {
+    server.on('error', (err) => {
+        cb(err)()
     })
-    
-    return (cancelError, onCancelerError, onCancelerSuccess) => {
-        onCancelerSuccess()
-    }
 }
 
-exports.closeImpl = server => (onError, onSuccess) => {
-    server.close(onSuccess);
-
-    return (cancelError, onCancelerError, onCancelerSuccess) => {
-        onCancelerSuccess()
-    }
+exports.oncloseImpl = server => cb => () => {
+    server.on('close', cb)
 }
 
-
-exports.handleUpgradeImpl = server => request => socket => buffer => done => (onError, onSuccess) => {
-    server.handleUpgrade(request, socket, buffer, onSuccess);
-
-    return (cancelError, onCancelerError, onCancelerSuccess) => {
-        onCancelerSuccess()
-    }
+exports.onlisteningImpl = server => cb => () => {
+    server.on('listening', cb)
 }
 
-exports.shouldHandleImpl = server => request => (onError, onSuccess) => {
-    onSuccess(server.shouldHandle(request))
+exports.onheadersImpl = server => cb => () => {
+    server.on('headers', (headers, req) => {
+        cb(headers)(req)
+    })
+}
 
-    return (cancelError, onCancelerError, onCancelerSuccess) => {
-        onCancelerSuccess()
-    }
+exports.onconnectionImpl = server => cb => () => {
+    server.on('connection', (ws, req) =>{
+        cb(ws)(req)()
+    })
+}
+
+exports.closeImpl = server => cb => () => {
+    server.close(cb);
+}
+
+exports.handleUpgradeImpl = server => request => socket => buffer => cb => () =>{
+    server.handleUpgrade(request, socket, buffer, (ws) => {
+        cb(ws)()
+    })
+}
+
+exports.shouldHandleImpl = server => request => {
+    server.shouldHandle(request)
 }
