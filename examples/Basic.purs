@@ -8,7 +8,7 @@ import Effect (Effect)
 import Effect.Aff (Milliseconds(..), delay, launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console (log) as Console
-import Node.WebSocket (close, createWebsocket, onclose, onmessage, onopen, onping, origin, send, terminate) as WS
+import WebSocket (close, createWebsocket, onclose, onmessage, onopen, onping, origin, send, terminate) as WS
 
 main :: Effect Unit
 main = websocketEcho

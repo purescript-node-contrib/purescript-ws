@@ -36,7 +36,7 @@ import Foreign (Foreign)
 import Node.Buffer (Buffer)
 import Node.HTTP as HTTP
 import Node.Net.Socket as Net
-import Node.WebSocket.Internal (WebSocket)
+import WebSocket.Internal (WebSocket)
 
 foreign import data WSServer :: Type  
 

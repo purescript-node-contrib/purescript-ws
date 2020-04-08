@@ -7,8 +7,8 @@ import Effect (Effect)
 import Effect.Aff (Milliseconds(..), delay, launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Class.Console as Console
-import Node.WebSocket as WS
-import Node.WebSocket.Server as WSS
+import WebSocket as WS
+import WebSocket.Server as WSS
 
 main :: Effect Unit
 main = do
