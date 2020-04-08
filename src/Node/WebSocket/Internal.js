@@ -17,7 +17,11 @@ exports.readyStateImpl = websocket => () => {
     return { tag: readyState(websocket.readyState) }
 }
 
-exports.sendImpl = ws => data => options => action => () => {
+exports.sendImpl = ws => data => () => {
+    ws.send(data)
+}
+
+exports.sendImpl_ = ws => data => options => action => () => {
     ws.send(data, options, action)
 }
 

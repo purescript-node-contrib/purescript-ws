@@ -3,7 +3,7 @@ module Node.WebSocket.Server
     , WSServerConfig (..)
     , WSServerOptions
     , createServer
-
+    , createServer'
     -- WSServerOptions
     , server 
     , noServer
@@ -45,10 +45,13 @@ data WSServerOptions
 
 data WSServerConfig  =  Port Int | Server HTTP.Server | NoServer 
 
-createServer :: WSServerConfig -> Options WSServerOptions -> Effect Unit -> Effect WSServer
-createServer NoServer opts action   = createServerImpl (options (opts <> noServer := true)) action
-createServer (Server s) opts action = createServerImpl (options (opts <> server := s)) action 
-createServer (Port p) opts action   = createServerImpl (options (opts <> port := p)) action
+createServer :: WSServerConfig -> Options WSServerOptions -> Effect WSServer
+createServer wsscfg opts = createServer' wsscfg opts (pure unit)
+
+createServer' :: WSServerConfig -> Options WSServerOptions -> Effect Unit -> Effect WSServer
+createServer' NoServer opts action   = createServerImpl (options (opts <> noServer := true)) action
+createServer' (Server s) opts action = createServerImpl (options (opts <> server := s)) action 
+createServer' (Port p) opts action   = createServerImpl (options (opts <> port := p)) action
 
 port :: Option WSServerOptions Int 
 port = opt "port" 

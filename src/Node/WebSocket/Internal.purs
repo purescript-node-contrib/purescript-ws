@@ -80,19 +80,10 @@ maxPayload :: Option WebSocketOptions Int
 maxPayload = opt "maxPayload"
 
 send :: WebSocket -> ByteString -> Effect Unit
-send ws b = send' ws b defaultSendOpts (pure unit)
-    where 
-        -- https://github.com/websockets/ws/blob/master/lib/websocket.js#L343-L349
-        -- TO DO: Need to adjust default for PerMessageDeflate
-        defaultSendOpts = 
-            { binary: true
-            , mask: (not $ isServer ws)
-            , compress: true
-            , fin: true
-            }
+send = sendImpl
 
 send' :: WebSocket -> ByteString -> SendOptions -> Effect Unit -> Effect Unit
-send' = sendImpl 
+send' = sendImpl_
 
 onerror :: WebSocket -> (Error -> Effect Unit) -> Effect Unit
 onerror = onerrorImpl
@@ -145,7 +136,8 @@ foreign import urlImpl :: WebSocket -> Nullable String
 foreign import protocolImpl :: WebSocket -> Nullable String 
 foreign import createWebsocketImpl :: String -> Array String -> Foreign -> Effect WebSocket
 foreign import readyStateImpl :: WebSocket -> Effect Foreign 
-foreign import sendImpl :: WebSocket -> ByteString -> SendOptions -> Effect Unit -> Effect Unit 
+foreign import sendImpl :: WebSocket -> ByteString -> Effect Unit 
+foreign import sendImpl_ :: WebSocket -> ByteString -> SendOptions -> Effect Unit -> Effect Unit
 foreign import onpingImpl :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit  
 foreign import onpongImpl :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit  
 foreign import pingImpl :: WebSocket -> ByteString -> Boolean -> Effect Unit -> Effect Unit  
