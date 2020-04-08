@@ -12,7 +12,6 @@ module Node.WebSocket.Server
     , backlog
     , path 
     , maxPayload
-
     -- on events
     , onconnection
     , onerror

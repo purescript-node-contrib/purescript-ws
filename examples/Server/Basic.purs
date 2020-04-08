@@ -10,17 +10,6 @@ import Effect.Class.Console as Console
 import Node.WebSocket as WS
 import Node.WebSocket.Server as WSS
 
--- import Prelude
-
--- import Control.Monad.Rec.Class (forever)
--- import Data.Tuple (Tuple(..))
--- import Effect (Effect)
--- import Effect.Aff (Aff, Milliseconds(..), delay, forkAff, launchAff_)
--- import Effect.Class.Console as Console
--- import Node.WebSocket (ReadyState(..))
--- import Node.WebSocket (close, createWebsocket, onMessage, readyState, send) as WS
--- import Node.WebSocket.Server as WSS
-
 main :: Effect Unit
 main = do
     websocketServer
