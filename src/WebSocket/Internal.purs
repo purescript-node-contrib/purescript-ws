@@ -1,4 +1,4 @@
-module Node.WebSocket.Internal where 
+module WebSocket.Internal where 
 
 import Prelude
 

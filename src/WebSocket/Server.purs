@@ -1,4 +1,4 @@
-module Node.WebSocket.Server 
+module WebSocket.Server 
     ( WSServer
     , WSServerConfig (..)
     , WSServerOptions

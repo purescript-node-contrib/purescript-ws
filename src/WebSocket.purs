@@ -1,5 +1,5 @@
-module Node.WebSocket (module WS) where 
+module WebSocket (module WS) where 
 
-import Node.WebSocket.Internal ( WebSocket, WebSocketOptions, ReadyState(..), createWebsocket, createWebsocket'
+import WebSocket.Internal ( WebSocket, WebSocketOptions, ReadyState(..), createWebsocket, createWebsocket'
                                , followRedirects, readyState, handshakeTimeout, maxRedirects, protocolVersion, origin, maxPayload
                                , onmessage, onerror, onopen, onping, onpong, onclose, ping, pong, terminate, url, protocol, send, close) as WS 
