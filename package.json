@@ -1,5 +1,5 @@
 {
-  "name": "purescript-node-ws",
+  "name": "purescript-ws",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/Woody88/purescript-node-ws.git",
