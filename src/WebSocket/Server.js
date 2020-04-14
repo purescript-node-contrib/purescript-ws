@@ -31,6 +31,11 @@ exports.onconnectionImpl = server => cb => () => {
         cb(ws)(req)()
     })
 }
+exports.onupgradeImpl = server => cb => () => {
+    server.on('upgrade', (request, socket, buffer) => {
+        cb(request)(socket)(buffer)()
+    })
+}
 
 exports.closeImpl = server => cb => () => {
     server.close(cb);

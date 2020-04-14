@@ -20,6 +20,9 @@ websocketServer = do
     wss <- WSS.createServer' (WSS.Port 8080) mempty do 
                 Console.log "listening on port 8080"
 
+    WSS.onupgrade wss \_ _ _ -> do 
+        Console.log "upgrade"
+
     WSS.onconnection wss \ws req -> do 
         Console.log "New Connection!"
         WS.onmessage ws \msg -> do 
@@ -40,4 +43,4 @@ websocketClient = do
         launchAff_ do 
             delay $ Milliseconds 1000.00 
             liftEffect do 
-                WS.send ws (BS.toUTF8 "Hello, World!") 
+                WS.sendText ws "Hello, World!" 

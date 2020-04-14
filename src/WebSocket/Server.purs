@@ -18,7 +18,7 @@ module WebSocket.Server
     , onclose
     , onlistening
     , onheaders
-
+    , onupgrade
     , handleUpgrade
     , shouldHandle
     , close
@@ -33,7 +33,6 @@ import Data.Options (Option, Options, opt, options, (:=))
 import Effect (Effect)
 import Effect.Exception (Error)
 import Foreign (Foreign)
-import Node.Buffer (Buffer)
 import Node.HTTP as HTTP
 import Node.Net.Socket as Net
 import WebSocket.Internal (WebSocket)
@@ -88,7 +87,10 @@ onlistening = onlisteningImpl
 onheaders :: WSServer -> (Array ByteString -> HTTP.Request -> Effect Unit) -> Effect Unit 
 onheaders = onheadersImpl 
 
-handleUpgrade :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit 
+onupgrade :: WSServer -> (HTTP.Request -> Net.Socket -> ByteString -> Effect Unit) -> Effect Unit 
+onupgrade = onupgradeImpl 
+
+handleUpgrade :: WSServer -> HTTP.Request -> Net.Socket -> ByteString -> (WebSocket -> Effect Unit) -> Effect Unit 
 handleUpgrade = handleUpgradeImpl 
 
 shouldHandle :: WSServer -> HTTP.Request -> Boolean 
@@ -102,10 +104,11 @@ close' = closeImpl
 
 foreign import createServerImpl  :: Foreign -> Effect Unit -> Effect WSServer
 foreign import closeImpl         :: WSServer -> Effect Unit -> Effect Unit
-foreign import handleUpgradeImpl :: WSServer -> HTTP.Request -> Net.Socket -> Buffer -> (WebSocket -> Effect Unit) -> Effect Unit 
+foreign import handleUpgradeImpl :: WSServer -> HTTP.Request -> Net.Socket -> ByteString -> (WebSocket -> Effect Unit) -> Effect Unit 
 foreign import shouldHandleImpl  :: WSServer -> HTTP.Request -> Boolean
 foreign import onconnectionImpl  :: WSServer -> (WebSocket -> HTTP.Request -> Effect Unit) -> Effect Unit 
 foreign import onerrorImpl       :: WSServer -> (Error -> Effect Unit) -> Effect Unit 
 foreign import oncloseImpl       :: WSServer -> Effect Unit -> Effect Unit 
 foreign import onlisteningImpl   :: WSServer -> Effect Unit -> Effect Unit 
 foreign import onheadersImpl     :: WSServer -> (Array ByteString -> HTTP.Request -> Effect Unit) -> Effect Unit 
+foreign import onupgradeImpl     :: WSServer -> (HTTP.Request -> Net.Socket -> ByteString -> Effect Unit) -> Effect Unit

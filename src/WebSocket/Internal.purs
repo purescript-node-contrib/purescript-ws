@@ -16,6 +16,7 @@ import Effect.Exception (Error, error)
 import Foreign (Foreign, renderForeignError)
 import Foreign.Generic (class Decode, defaultOptions, genericDecode)
 import Foreign.Generic.EnumEncoding (defaultGenericEnumOptions, genericDecodeEnum)
+import Prim.Row (class Union)
 
 foreign import data WebSocket :: Type
 
@@ -29,11 +30,11 @@ data ReadyState
 
 type StatusCode = Int
 type SendOptions =
-    { compress :: Boolean 
+    ( compress :: Boolean 
     , binary   :: Boolean 
     , mask     :: Boolean 
     , fin       :: Boolean 
-    }
+    )
 
 derive instance genericReadyState :: Generic ReadyState _
 derive instance eqReadyState :: Eq ReadyState
@@ -79,10 +80,13 @@ origin = opt "origin"
 maxPayload :: Option WebSocketOptions Int 
 maxPayload = opt "maxPayload"
 
-send :: WebSocket -> ByteString -> Effect Unit
-send = sendImpl
+sendText :: WebSocket -> String -> Effect Unit
+sendText = sendImpl 
 
-send' :: WebSocket -> ByteString -> SendOptions -> Effect Unit -> Effect Unit
+send :: WebSocket -> ByteString -> Effect Unit 
+send ws bs = sendImpl_ ws bs {binary: true} (pure unit)
+
+send' :: forall opts t. Union opts t SendOptions => WebSocket -> ByteString -> { | opts} -> Effect Unit -> Effect Unit
 send' = sendImpl_
 
 onerror :: WebSocket -> (Error -> Effect Unit) -> Effect Unit
@@ -136,8 +140,8 @@ foreign import urlImpl :: WebSocket -> Nullable String
 foreign import protocolImpl :: WebSocket -> Nullable String 
 foreign import createWebsocketImpl :: String -> Array String -> Foreign -> Effect WebSocket
 foreign import readyStateImpl :: WebSocket -> Effect Foreign 
-foreign import sendImpl :: WebSocket -> ByteString -> Effect Unit 
-foreign import sendImpl_ :: WebSocket -> ByteString -> SendOptions -> Effect Unit -> Effect Unit
+foreign import sendImpl :: WebSocket -> String -> Effect Unit 
+foreign import sendImpl_ :: forall opts. WebSocket -> ByteString -> opts -> Effect Unit -> Effect Unit
 foreign import onpingImpl :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit  
 foreign import onpongImpl :: WebSocket -> (ByteString -> Effect Unit) -> Effect Unit  
 foreign import pingImpl :: WebSocket -> ByteString -> Boolean -> Effect Unit -> Effect Unit  
