@@ -6,6 +6,6 @@
   "author": "Woodson Delhia <woodsondelhia88@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "ws": "^7.2.1"
+    "ws": "^7.4.6"
   }
 }
